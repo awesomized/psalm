@@ -42,8 +42,10 @@ final class EncapsulatedStringAnalyzer
         $literal_string = "";
 
         foreach ($stmt->parts as $part) {
-            if (ExpressionAnalyzer::analyze($statements_analyzer, $part, $context) === false) {
-                return false;
+            if ($part instanceof PhpParser\Node\Expr) {
+                if (ExpressionAnalyzer::analyze($statements_analyzer, $part, $context) === false) {
+                    return false;
+                }
             }
 
             if ($part instanceof EncapsedStringPart) {

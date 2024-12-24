@@ -7,6 +7,7 @@ use PhpParser\ErrorHandler\Collecting;
 use PhpParser\Lexer\Emulative;
 use PhpParser\Node\Stmt;
 use PhpParser\Parser;
+use PhpParser\PhpVersion;
 use Psalm\CodeLocation\ParseErrorLocation;
 use Psalm\Codebase;
 use Psalm\Config;
@@ -397,14 +398,12 @@ final class StatementsProvider
         if (!self::$lexer) {
             $major_version = Codebase::transformPhpVersionId($analysis_php_version_id, 10_000);
             $minor_version = Codebase::transformPhpVersionId($analysis_php_version_id % 10_000, 100);
-            self::$lexer = new Emulative([
-                'usedAttributes' => $attributes,
-                'phpVersion' => $major_version . '.' . $minor_version,
-            ]);
-        }
+            $php_version = PhpVersion::fromComponents($major_version, $minor_version);
+            self::$lexer = new Emulative($php_version);
 
-        if (!self::$parser) {
-            self::$parser = (new PhpParser\ParserFactory())->create(PhpParser\ParserFactory::ONLY_PHP7, self::$lexer);
+            if (!self::$parser) {
+                self::$parser = (new PhpParser\ParserFactory())->createForVersion($php_version);
+            }
         }
 
         $used_cached_statements = false;
